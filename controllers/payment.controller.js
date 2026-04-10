@@ -21,35 +21,27 @@ const getRazorpayApiKey = async(req,res,next) => {
 
 const buySubscription = async(req,res,next) => {
     try{
-        
         const {id} = req.user;
         const user = await User.findById(id);
-    
+
         if(!user){ // although will check in routes-middleware still one more check
             return next(
                 new AppError('Unauthorized, please login',400)
             )
         }
-    
+
         if(user.role === 'ADMIN'){
             return next(
                 new AppError('Admin cannot purchase a subscription',400)
             )
         }
-
-        const customer = await razorpay.customers.create({
-            name: user.name,
-            email: user.email
-        });
     
         // Creating a subscription using razorpay that we imported from the server.js
         const subscription = await razorpay.subscriptions.create({
             plan_id: process.env.RAZORPAY_PLAN_ID, // The unique plan ID
             customer_notify: 1, // 1 means razorpay will handle notifying the customer, 0 means we will not notify the customer
             total_count: 2, // 2 means it will charge twice in 1-year. if 12 then every month charge
-            // customer_id: customer.id
         }); 
-
     
         // Adding the ID and the status to the user account
         user.subscription.id = subscription.id;
@@ -117,7 +109,6 @@ const verifySubscription = async(req,res,next) => {
             new AppError(e.message, 500)
         )
     }
-
 }
 
 const cancelSubscription = async(req,res,next) => {
@@ -138,24 +129,28 @@ const cancelSubscription = async(req,res,next) => {
         }
 
         const subscriptionId = user.subscription.id;
-        console.log(subscriptionId); // (i)
         try{
-        const subscription = await razorpay.subscriptions.cancel(
-            subscriptionId
-        )
-         
-        console.log(subscriptionId); // (ii)
-        
-        user.subscription.status = subscription.status;
-    
+            
+            const subscription = await razorpay.subscriptions.cancel(
+                subscriptionId
+            )
+            user.subscription.status = subscription.status;
+            
+            await user.save();
+            
+        } 
+        catch(e){  return next( new AppError(e.message, 500) ) }
+
+        user.subscription.id = undefined; // Remove the subscription ID from user DB
+        user.subscription.status = undefined; // Change the subscription Status in user DB
+
         await user.save();
-    }
-    catch(e){
-        // console.log("❌ ERROR:", e);
-        return next(
-            new AppError(e.message, 500)
-        )
-    }
+
+        // Send the response
+        res.status(200).json({
+            success: true,
+            message: 'Subscription canceled successfully',
+        });
 }
 
 const allPayments = async(req,res,next) => {
@@ -227,11 +222,7 @@ const allPayments = async(req,res,next) => {
             monthlySalesRecord,
         });
     }
-    catch(e){
-        return next(
-            new AppError(e.message, 500)
-        )
-    }
+    catch(e){ return next(new AppError(e.message, 500))}
 
 }
 
