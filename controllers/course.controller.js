@@ -190,7 +190,8 @@ const addLectureToCourseById = async(req,res,next) => {
         if(req.file){
             try{
                 const result = await cloudinary.v2.uploader.upload(req.file.path, { // 1. uploading a file to Cloudinary. Cloudinary returns a response object (result) containing: public_id, secure_url, many other metadata
-                    folder : 'lms'
+                    folder : 'lms',
+                    resource_type: 'video'
                 });
     
                 if(result){
