@@ -40,8 +40,8 @@ const buySubscription = async(req,res,next) => {
         const subscription = await razorpay.subscriptions.create({
             plan_id: process.env.RAZORPAY_PLAN_ID, // The unique plan ID
             customer_notify: 1, // 1 means razorpay will handle notifying the customer, 0 means we will not notify the customer
-            total_count: 2, // 2 means it will charge twice in 1-year. if 12 then every month charge
-        }); 
+            total_count: 10, // Subscription plan will occur 10 times
+        });
     
         // Adding the ID and the status to the user account
         user.subscription.id = subscription.id;
@@ -130,7 +130,7 @@ const cancelSubscription = async(req,res,next) => {
 
         const subscriptionId = user.subscription.id;
         try{
-            
+
             const subscription = await razorpay.subscriptions.cancel(
                 subscriptionId
             )
@@ -139,7 +139,7 @@ const cancelSubscription = async(req,res,next) => {
             await user.save();
             
         } 
-        catch(e){  return next( new AppError(e.message, 500) ) }
+        catch(e){ return next( new AppError(e.message, 500) ) }
 
         user.subscription.id = undefined; // Remove the subscription ID from user DB
         user.subscription.status = undefined; // Change the subscription Status in user DB
@@ -155,10 +155,29 @@ const cancelSubscription = async(req,res,next) => {
 
 const allPayments = async(req,res,next) => {
     try{
-        const { count, skip } = req.query;
+
+        // getting no. of payments
+        let allItems = [];
+        let skip = 0;
+        const count = 100;
+
+        while (true) {
+            const response = await razorpay.payments.all({
+                count,
+                skip,
+            });
+
+            const items = response.items;
+
+            allItems = [...allItems, ...items];
+
+            if (items.length < count) break;
+
+            skip += count;
+        }
 
         // Find all subscriptions from razorpay
-        const allPayments = await razorpay.subscriptions.all({
+        const allPayments = await razorpay.payments.all({
             count: count ? count : 10, // If count is sent then use that else default to 10
             skip: skip ? skip : 0, // // If skip is sent then use that else default to 0
         });
@@ -195,7 +214,7 @@ const allPayments = async(req,res,next) => {
 
         const monthlyWisePayments = allPayments.items.map((payment) => {
             // We are using payment.start_at which is in unix time, so we are converting it to Human readable format using Date()
-            const monthsInNumbers = new Date(payment.start_at * 1000);
+            const monthsInNumbers = new Date(payment.created_at* 1000);
 
             return monthNames[monthsInNumbers.getMonth()];
         });
