@@ -71,13 +71,9 @@ const register = async(req,res,next) => {
     }
 
     await user.save(); // saving in DB
-
     user.password = undefined; 
-
     const token = await user.generateJWTToken();
-
     res.cookie('token',token,cookieOptions)
-
     res.status(201).json({
         success: true,
         message: 'User registered successfully',
