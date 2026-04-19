@@ -1,28 +1,36 @@
-import nodemailer from "nodemailer";
+import axios from "axios";
 
-const sendEmail = async function (email, subject, message) {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT), // ✅ FIXED
-    secure: false, // correct for 587
-    auth: {
-      user: process.env.SMTP_USERNAME,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
+const sendEmail = async (email, subject, message) => {
+  try {
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          email: process.env.BREVO_SENDER_EMAIL,
+          name: "LMS Contact",
+        },
+        to: [{ email }],
+        subject: subject,
+        htmlContent: `<p>${message}</p>`,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  // 🔍 DEBUG: check connection first
-  await transporter.verify();
+    console.log("Email sent:", response.data);
+    return response.data;
 
-  // 📧 send mail
-  const info = await transporter.sendMail({
-    from: process.env.SMTP_FROM_EMAIL,
-    to: email,
-    subject: subject,
-    html: message,
-  });
-
-  console.log("Email sent:", info.messageId);
+  } catch (error) {
+    console.error(
+      "Brevo Error:",
+      error?.response?.data || error.message
+    );
+    throw error;
+  }
 };
 
 export default sendEmail;
