@@ -17,15 +17,28 @@ export const contactUs = asyncHandler(async (req, res, next) => {
     return next(new AppError('Name, Email, Message are required'));
   }
 
+  console.log("Contact API hit");
+console.log("Sending email...");
+
   try {
     const subject = 'Contact Us Form';
     const textMessage = `${name} - ${email} <br /> ${message}`;
 
     // Await the send email
-    await sendEmail(process.env.CONTACT_US_EMAIL, subject, textMessage);
+    // await sendEmail(process.env.CONTACT_US_EMAIL, subject, textMessage);
+    const sendMailWithTimeout = async () => {
+      return Promise.race([
+        sendEmail(process.env.CONTACT_US_EMAIL, subject, textMessage),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Email timeout")), 8000)
+        ),
+      ]);
+    };
+    await sendMailWithTimeout();
+    console.log("Email sent successfully");
   } catch (error) {
     console.log(error);
-    return next(new AppError(error.message, 401));
+    return next(new AppError(error.message, 500));
   }
 
   res.status(200).json({
