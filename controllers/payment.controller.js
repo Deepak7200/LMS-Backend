@@ -130,13 +130,10 @@ const cancelSubscription = async(req,res,next) => {
 
         const subscriptionId = user.subscription.id;
         try{
-
-            console.log(3);
-
+            
             const subscription = await razorpay.subscriptions.cancel(
                 subscriptionId
             )
-            console.log(4);
             user.subscription.status = subscription.status;
             
             await user.save();
