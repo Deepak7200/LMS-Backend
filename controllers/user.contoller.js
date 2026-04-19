@@ -8,7 +8,8 @@ import crypto from 'crypto';
 const cookieOptions = {
     maxAge: 7*24*60*60*1000, // 7 days
     httpOnly: true, // JavaScript cannot access the cookie
-    secure: true // Protects against XSS (Cross-Site Scripting) attacks : if a hacker injects JS into your site, they cannot steal this cookie
+    secure: true, // Protects against XSS (Cross-Site Scripting) attacks : if a hacker injects JS into your site, they cannot steal this cookie
+    sameSite: "none"
 }
 
 const register = async(req,res,next) => {
