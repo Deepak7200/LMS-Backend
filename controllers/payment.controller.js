@@ -112,7 +112,7 @@ const verifySubscription = async(req,res,next) => {
 }
 
 const cancelSubscription = async(req,res,next) => {
-    
+
         const {id} = req.user;
         const user = await User.findById(id);
     
@@ -131,15 +131,18 @@ const cancelSubscription = async(req,res,next) => {
         const subscriptionId = user.subscription.id;
         try{
 
+            console.log(3);
+
             const subscription = await razorpay.subscriptions.cancel(
                 subscriptionId
             )
+            console.log(4);
             user.subscription.status = subscription.status;
             
             await user.save();
             
         } 
-        catch(e){ return next( new AppError(e.message, 500) ) }
+        catch(e){console.log("error: ",e); return next( new AppError(e.message, 500) ) }
 
         user.subscription.id = undefined; // Remove the subscription ID from user DB
         user.subscription.status = undefined; // Change the subscription Status in user DB
@@ -149,7 +152,7 @@ const cancelSubscription = async(req,res,next) => {
         // Send the response
         res.status(200).json({
             success: true,
-            message: 'Subscription canceled successfully',
+            message: 'Subscription cancelled successfully',
         });
 }
 

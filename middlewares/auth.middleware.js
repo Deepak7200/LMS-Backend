@@ -3,37 +3,57 @@ import AppError from "../utils/error.util.js";
 import jwt from 'jsonwebtoken';
 
 const isLoggedIn = async (req, res, next) => {
-    const {token} = req.cookies;
+    try{
+        const {token} = req.cookies;
 
-    if(!token){
-        return next(new AppError('Unauthenticated, please login again', 401));
+        console.log("Cookies:", req.cookies);
+
+        if(!token){
+            return next(new AppError('Unauthenticated, please login again', 401));
+        }
+        const userDetails = await jwt.verify(token, process.env.JWT_SECRET); 
+        req.user = userDetails;
+        next();
     }
-
-    const userDetails = await jwt.verify(token, process.env.JWT_SECRET); 
-
-    req.user = userDetails;
-
-    next();
+    catch(e){
+        return next(
+            new AppError(e.message, 400)
+        )
+    }
 }
 
 const authorizedRoles = (...roles) => async(req,res,next) => {
-    const currentUserRole = req.user.role;
-    if(!roles.includes(currentUserRole)) {
+    try{
+        const currentUserRole = req.user.role;
+        if(!roles.includes(currentUserRole)) {
+            return next(
+                new AppError('You do not have permission to access this route')
+            )
+        }
+        next();
+    }
+    catch(e){
         return next(
-            new AppError('You do not have permission to access this route')
+            new AppError(e.message, 400)
         )
     }
-    next();
 }
 
 const authorizedSubscriber = async(req,res,next) => {
-    const user = await User.findById(req.user.id);
-    if(user.role !== 'ADMIN' && user.subscription.status !== 'active'){
+    try{
+        const user = await User.findById(req.user.id);
+        if(user.role !== 'ADMIN' && user.subscription.status !== 'active'){
+            return next(
+                new AppError('Please subscribe to access this route!', 403)
+            )
+        }
+        next();
+    }
+    catch(e){
         return next(
-            new AppError('Please subscribe to access this route!', 403)
+            new AppError(e.message, 400)
         )
     }
-    next();
 }
 
 export{
