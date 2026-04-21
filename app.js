@@ -22,8 +22,9 @@ app.use(express.urlencoded({extended:true})); // "If data comes from a form (URL
 
 app.use(cookieParser());
 
+const allowedOrigins = process.env.FRONTEND_URL.split(",");
 app.use(cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: allowedOrigins,
     credentials: true
 }));
 
