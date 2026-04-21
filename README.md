@@ -22,9 +22,10 @@ This is the backend for a Learning Management System (LMS) built using Node.js a
 * Express.js
 * MongoDB
 * JWT Authentication
-* Cloudinary
-* Brevo-api
-* Razorpay-Payment-Gateway
+* cloudinary
+* brevo-api
+* razorpay-Payment-Gateway
+* bcrypt-password-hashing
 
 ---
 
@@ -104,10 +105,10 @@ npm start
 ## 🔗 API Endpoints (Basic)
 
 ```
-POST   /api/auth/register   -> Register user
-POST   /api/auth/login      -> Login user
-GET    /api/courses         -> Get all courses
-POST   /api/courses         -> Create course
+GET    /api/v1/courses        -> Get all courses
+POST   /api/v1/user/login     -> Login user
+GET    /api/v1/user/me        -> Get user data
+POST   /api/v1/user/logout    -> Logout user
 ```
 
 ---
