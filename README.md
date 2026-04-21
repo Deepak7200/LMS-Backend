@@ -121,16 +121,16 @@ POST   /api/v1/user/logout    -> Logout user
 
 ## 📸 Screenshots
 
-###Get all courses
+### Get all courses
 ![LMS Screenshot](./images/courses.png)
 
-###Login User
+### Login User
 ![LMS Screenshot](./images/login.png)
 
-###Get User Profile
+### Get User Profile
 ![LMS Screenshot](./images/profile.png)
 
-###Logout User
+### Logout User
 ![LMS Screenshot](./images/logout.png)
 
 ---
