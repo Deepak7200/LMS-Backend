@@ -32,7 +32,7 @@ const register = async(req,res,next) => {
         password,
         avatar: {
             public_id: email,
-            secure_url: 'cloudinary url '
+            secure_url: 'cloudinary url'
         }
     });
 
